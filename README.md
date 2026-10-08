@@ -1,0 +1,2 @@
+# Ping
+Submission for Shrinked
