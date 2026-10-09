@@ -1,10 +1,77 @@
-<body>
-  <h1>it works!</h1>
-  <style>
-    body { background: black; color: white; font-family: sans-serif; }
-  </style>
-  <script>
-    const title = document.querySelector("h1");
-    title.onclick = () => (title.textContent = "you clicked it");
-  </script>
-</body>
+<style>
+  body { margin: 0; background: #111; }
+  canvas { display: block; margin: auto; }
+  .cube {
+    width: 80px;
+    height: 80px;
+    margin: 60px auto;
+    background: #3498db;
+    transform-style: preserve-3d;
+    animation: spin 4s linear infinite;
+    box-shadow: 0 0 20px #3498db;
+  }
+  @keyframes spin {
+    from { transform: perspective(400px) rotateY(0); }
+    to { transform: perspective(400px) rotateY(360deg); }
+  }
+</style>
+
+<canvas id="c" width="700" height="500"></canvas>
+<div class="cube"></div>
+
+<script>
+  const canvas = document.getElementById('c');
+  const g = canvas.getContext('2d');
+  let ctx;
+
+  const cats = {
+    1: ['sawtooth', 450, 800, 500, 0.7],   
+    2: ['sawtooth', 800, 1300, 900, 0.35], 
+    3: ['sawtooth', 350, 700, 300, 1.4],   
+    4: ['sawtooth', 300, 600, 650, 0.3], 
+    5: ['sawtooth', 90, 90, 70, 1],       
+    6: ['triangle', 600, 1000, 600, 0.8],  
+    7: ['sine', 1500, 2000, 1800, 0.2],    
+    8: ['square', 500, 1000, 400, 1],      
+    9: ['sawtooth', 700, 500, 300, 1],    
+    0: ['triangle', 60, 60, 50, 1.5]       
+  };
+// making wave, start pitch, peak pitch, end pitch
+  function play([wave, start, peak, end, dur]) {
+    ctx = ctx || new AudioContext();
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = wave;
+    osc.frequency.setValueAtTime(start, t);
+    osc.frequency.linearRampToValueAtTime(peak, t + dur * 0.3);
+    osc.frequency.linearRampToValueAtTime(end, t + dur);
+
+    gain.gain.setValueAtTime(0.3, t);
+    gain.gain.linearRampToValueAtTime(0, t + dur);
+
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + dur);
+  }
+
+  function draw(text) {
+    g.fillStyle = '#111';
+    g.fillRect(0, 0, canvas.width, canvas.height);
+    g.fillStyle = '#fff';
+    g.font = '120px sans-serif';
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText(text, canvas.width / 2, canvas.height / 2);
+  }
+  
+  document.addEventListener('keydown', e => {
+    const s = cats[e.key];
+    if (!s || e.repeat) return;
+    play(s);
+    draw(e.key);
+  });
+
+  draw('type 0-9');
+</script>
